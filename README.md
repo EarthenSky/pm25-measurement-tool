@@ -1,6 +1,10 @@
 # AQICN Air Pollutant Tool
 A command line tool which uses the the WAQI public API to report realtime PM2.5 results
 
+## requirements
+- ensure you're using python 3.11 or higher (older versions may work, but are untested)
+- `python -m pip install -r requirements.txt`
+
 ## instructions
 - in order to use this tool, please generate a free key from https://aqicn.org/data-platform/token/
 

@@ -25,7 +25,7 @@ def get_responses_batch(url_list:list[str], workers=16) -> list[requests.Respons
 # sampling:
 
 def get_station_requests(coords:str, api_token:str, iaqi:str="pm25") -> list[str]:
-    map_query_request = "{}/map/bounds?token={}&latlng={}".format(root_ip, api_token, coords)
+    map_query_request = f"{root_ip}/map/bounds?token={api_token}&latlng={coords}"
 
     response = requests.get(map_query_request)
     response_dict = response.json()
@@ -50,7 +50,7 @@ def get_station_requests(coords:str, api_token:str, iaqi:str="pm25") -> list[str
                 filtered_station_urls += [url]
                 filtered_station_uids += [uid]
             else:
-                print(f"Ignoring station {uid}")
+                print(f"Ignoring station {uid} (does not measure {iaqi})")
 
         return filtered_station_urls, filtered_station_uids
 
@@ -123,12 +123,11 @@ def validate_input(coords, sampling_period, sampling_rate):
 # body:
 
 if __name__ == "__main__":
-    # 
     api_token, coords, sampling_period, sampling_rate = get_input()
     coords, sampling_period, sampling_rate = validate_input(coords, sampling_period, sampling_rate)
 
     station_urls, station_uids = get_station_requests(coords, api_token)
-    print("There are {} valid stations in the requested area.".format(len(station_urls)))
+    print(f"There are {len(station_urls)} valid stations in the requested area.")
 
     # get number of stations in the area, and determine the max sampling rate based on api limits
     estimate_requests_per_sec = (sampling_rate / 60) * len(station_urls)
@@ -149,9 +148,9 @@ if __name__ == "__main__":
         sample_list = get_samples(station_urls)
         elapsed_during_request = time.time() - last_time
 
-        print("\tCollected samples: (took {:.3f}s)".format(elapsed_during_request))
+        print(f"\tCollected samples: (took {elapsed_during_request:.3f}s)")
         for sample, uid in zip(sample_list, station_uids):
-            print("\t\tPM2.5 @ station {}\t= {:.2f}".format(uid, sample))
+            print(f"\t\tPM2.5 @ station {uid}\t= {sample:.2f}")
 
         sample_total += sum(sample_list) / len(sample_list)
         num_samples += 1
@@ -166,4 +165,4 @@ if __name__ == "__main__":
         time_elapsed += 60.0 / sampling_rate
 
     sample_time_avg = sample_total / num_samples
-    print("The average PM2.5 quality over {} samples is:\n{:.5f}".format(num_samples, sample_time_avg))
+    print(f"The average PM2.5 quality over {num_samples} samples is:\n{sample_time_avg:.5f}")
